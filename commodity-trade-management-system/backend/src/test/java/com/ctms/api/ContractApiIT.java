@@ -44,13 +44,21 @@ class ContractApiIT {
         commodityId = commodityRepository.save(commodity).getId();
     }
 
+    /**
+     * Builds a unique reference that stays within the {@code @Size(max = 40)}
+     * constraint on {@code contractReference} (4 + 24 = 28 characters).
+     */
+    private static String uniqueReference() {
+        return "CTR-" + UUID.randomUUID().toString().substring(0, 24);
+    }
+
     @Test
     void createWithDeliveryDateBeforeContractDateReturns400() throws Exception {
         String body = """
-                {"contractReference":"CTR-API-%s","buyerName":"Buyer Corp","sellerName":"Seller Corp",\
+                {"contractReference":"%s","buyerName":"Buyer Corp","sellerName":"Seller Corp",\
                 "commodityId":%d,"contractQuantity":100,"contractPrice":50,"contractDate":"2026-02-10",\
                 "deliveryDate":"2026-02-01","deliveryLocation":"Rotterdam","status":"DRAFT"}
-                """.formatted(UUID.randomUUID(), commodityId);
+                """.formatted(uniqueReference(), commodityId);
 
         mockMvc.perform(post("/api/contracts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -64,10 +72,10 @@ class ContractApiIT {
     @Test
     void createWithIdenticalBuyerAndSellerReturns400() throws Exception {
         String body = """
-                {"contractReference":"CTR-API-%s","buyerName":"ACME Trading","sellerName":"acme trading",\
+                {"contractReference":"%s","buyerName":"ACME Trading","sellerName":"acme trading",\
                 "commodityId":%d,"contractQuantity":100,"contractPrice":50,"contractDate":"2026-02-01",\
                 "deliveryDate":"2026-03-01","deliveryLocation":"Rotterdam","status":"DRAFT"}
-                """.formatted(UUID.randomUUID(), commodityId);
+                """.formatted(uniqueReference(), commodityId);
 
         mockMvc.perform(post("/api/contracts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -78,7 +86,7 @@ class ContractApiIT {
 
     @Test
     void createValidContractReturns201() throws Exception {
-        String reference = "CTR-API-" + UUID.randomUUID();
+        String reference = uniqueReference();
         String body = """
                 {"contractReference":"%s","buyerName":"Buyer Corp","sellerName":"Seller Corp",\
                 "commodityId":%d,"contractQuantity":100,"contractPrice":50,"contractDate":"2026-02-01",\
@@ -98,7 +106,7 @@ class ContractApiIT {
 
     @Test
     void duplicateReferenceReturns409() throws Exception {
-        String reference = "CTR-API-" + UUID.randomUUID();
+        String reference = uniqueReference();
         String body = """
                 {"contractReference":"%s","buyerName":"Buyer Corp","sellerName":"Seller Corp",\
                 "commodityId":%d,"contractQuantity":100,"contractPrice":50,"contractDate":"2026-02-01",\

@@ -31,7 +31,7 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
-# NOTE: the Maven wrapper launchers are intentionally NOT ignored:
+# NOTE: if you add a Maven wrapper later, un-ignore its launchers:
 #   mvnw, mvnw.cmd, .mvn/wrapper/maven-wrapper.properties
 
 # ---------------------------------- Node -----------------------------------

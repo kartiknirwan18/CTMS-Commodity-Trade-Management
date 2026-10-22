@@ -47,6 +47,14 @@ class TradeApiIT {
         commodityId = commodityRepository.save(commodity).getId();
     }
 
+    /**
+     * Builds a unique reference that stays within the {@code @Size(max = 40)}
+     * constraint on {@code tradeReference} (4 + 24 = 28 characters).
+     */
+    private static String uniqueReference() {
+        return "TRD-" + UUID.randomUUID().toString().substring(0, 24);
+    }
+
     private String validTradeBody(String reference) {
         return """
                 {"tradeReference":"%s","commodityId":%d,"tradeType":"BUY","quantity":10,"pricePerUnit":5.5,\
@@ -58,7 +66,7 @@ class TradeApiIT {
     }
 
     private CreatedTrade createTrade() throws Exception {
-        String reference = "TRD-API-" + UUID.randomUUID();
+        String reference = uniqueReference();
         MvcResult result = mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validTradeBody(reference)))
@@ -70,7 +78,7 @@ class TradeApiIT {
 
     @Test
     void createValidTradeReturns201AndDerivedTotalValue() throws Exception {
-        String reference = "TRD-API-" + UUID.randomUUID();
+        String reference = uniqueReference();
 
         mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,9 +95,9 @@ class TradeApiIT {
     @Test
     void createWithMissingQuantityReturns400() throws Exception {
         String body = """
-                {"tradeReference":"TRD-NOQTY-%s","commodityId":%d,"tradeType":"BUY","pricePerUnit":5.5,\
+                {"tradeReference":"%s","commodityId":%d,"tradeType":"BUY","pricePerUnit":5.5,\
                 "tradeDate":"%s"}
-                """.formatted(UUID.randomUUID(), commodityId, LocalDate.now().minusDays(1));
+                """.formatted(uniqueReference(), commodityId, LocalDate.now().minusDays(1));
 
         mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -101,9 +109,9 @@ class TradeApiIT {
     @Test
     void createWithZeroQuantityReturns400() throws Exception {
         String body = """
-                {"tradeReference":"TRD-ZERO-%s","commodityId":%d,"tradeType":"BUY","quantity":0,"pricePerUnit":5.5,\
+                {"tradeReference":"%s","commodityId":%d,"tradeType":"BUY","quantity":0,"pricePerUnit":5.5,\
                 "tradeDate":"%s"}
-                """.formatted(UUID.randomUUID(), commodityId, LocalDate.now().minusDays(1));
+                """.formatted(uniqueReference(), commodityId, LocalDate.now().minusDays(1));
 
         mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -115,9 +123,9 @@ class TradeApiIT {
     @Test
     void createWithFutureTradeDateReturns400() throws Exception {
         String body = """
-                {"tradeReference":"TRD-FUTURE-%s","commodityId":%d,"tradeType":"BUY","quantity":10,"pricePerUnit":5.5,\
+                {"tradeReference":"%s","commodityId":%d,"tradeType":"BUY","quantity":10,"pricePerUnit":5.5,\
                 "tradeDate":"%s"}
-                """.formatted(UUID.randomUUID(), commodityId, LocalDate.now().plusDays(5));
+                """.formatted(uniqueReference(), commodityId, LocalDate.now().plusDays(5));
 
         mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,7 +156,7 @@ class TradeApiIT {
 
         mockMvc.perform(put("/api/trades/" + trade.id())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(validTradeBody("TRD-API-" + UUID.randomUUID())))
+                        .content(validTradeBody(uniqueReference())))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
     }
@@ -170,9 +178,9 @@ class TradeApiIT {
     @Test
     void createWithUnknownCommodityReturns404() throws Exception {
         String body = """
-                {"tradeReference":"TRD-NOCOMM-%s","commodityId":999999999,"tradeType":"BUY","quantity":10,\
+                {"tradeReference":"%s","commodityId":999999999,"tradeType":"BUY","quantity":10,\
                 "pricePerUnit":5.5,"tradeDate":"%s"}
-                """.formatted(UUID.randomUUID(), LocalDate.now().minusDays(1));
+                """.formatted(uniqueReference(), LocalDate.now().minusDays(1));
 
         mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +190,7 @@ class TradeApiIT {
 
     @Test
     void duplicateReferenceReturns409() throws Exception {
-        String reference = "TRD-API-" + UUID.randomUUID();
+        String reference = uniqueReference();
 
         mockMvc.perform(post("/api/trades")
                         .contentType(MediaType.APPLICATION_JSON)

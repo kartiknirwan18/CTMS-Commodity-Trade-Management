@@ -25,7 +25,7 @@ CTMS is a learning / portfolio project that manages commodity master data, BUY/S
 | Tool | Version | Notes |
 | --- | --- | --- |
 | Java (JDK) | 21 | required by Spring Boot 3.5.x |
-| Maven | *not required* | the project ships a Maven wrapper (`mvnw` / `mvnw.cmd`) |
+| Maven | 3.9+ | install Maven; there is no wrapper in the repo |
 | MySQL | 8.x | only needed for the MySQL profile |
 | Node.js | 18+ (20 LTS recommended) | for the frontend |
 | npm | bundled with Node.js | |
@@ -48,7 +48,6 @@ mysql --version
 commodity-trade-management-system/
 ├── backend/                  # Spring Boot 3.5 + Java 21 REST API
 │   ├── .env.example          # documents DB env vars (copy to .env)
-│   ├── mvnw / mvnw.cmd       # Maven wrapper
 │   └── src/
 ├── frontend/                 # React 18 + Vite + axios + recharts
 │   └── src/
@@ -72,8 +71,7 @@ The fastest way to try the API without installing MySQL. The `h2` profile uses a
 
 ```bash
 # from backend/
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=h2"     # Windows PowerShell
-# ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2          # macOS / Linux
+mvn spring-boot:run "-Dspring-boot.run.profiles=h2"
 ```
 
 Then hit:
@@ -165,35 +163,40 @@ From the `backend/` directory.
 **Build**
 
 ```bash
-.\mvnw.cmd clean package        # Windows PowerShell
-./mvnw clean package            # macOS / Linux
+mvn clean package
 ```
 
 **Run (MySQL profile)** - PowerShell example:
 
 ```powershell
 $env:CTMS_DB_PASSWORD="yourpassword"
-.\mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
 
 macOS / Linux:
 
 ```bash
 export CTMS_DB_PASSWORD=yourpassword
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 **Run (H2 in-memory profile)** - no credentials needed:
 
 ```bash
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=h2"
+mvn spring-boot:run "-Dspring-boot.run.profiles=h2"
 ```
 
 **Run tests**
 
 ```bash
-.\mvnw.cmd test
+mvn test
 ```
+
+98 tests: FIFO P&L matching, the service layer (Mockito), the Bean Validation rules,
+`@DataJpaTest` repository tests on H2, and `@SpringBootTest` + MockMvc REST tests for
+every endpoint. They run fully offline against in-memory H2, so no MySQL is needed.
+(`pom.xml` adds `**/*IT.java` to Surefire's includes so `mvn test` runs the `*IT`
+integration classes too.)
 
 The API will be available at <http://localhost:8080>, health check at <http://localhost:8080/api/health>.
 
@@ -252,7 +255,7 @@ Import `postman/CTMS.postman_collection.json` and `postman/CTMS-local.postman_en
 | `npm` is not recognized / execution policy error (Windows) | PowerShell script policy | use `npm.cmd` |
 | Vite dev server port busy | 5173 in use | Vite auto-selects the next free port, or set `--port` |
 | P&L shows `Not Available` | only buys, no matchable sells, or all non-confirmed | expected behaviour - see the P&L methodology in `docs/api-documentation.md` |
-| `mvnw` not executable (macOS/Linux) | missing exec bit | `chmod +x mvnw` |
+| `mvn` not found | Maven not installed / not on `PATH` | install Maven 3.9+ |
 
 Still stuck? Delete the local database and start clean:
 
