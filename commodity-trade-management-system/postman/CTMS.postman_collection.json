@@ -1,0 +1,1027 @@
+{
+  "info": {
+    "_postman_id": "b8f0a1c2-4d3e-4f5a-9b6c-ctms00000001",
+    "name": "CTMS - Commodity Trade Management System",
+    "description": "Collection covering every CTMS endpoint (Health, Commodities, Trades, Contracts, Dashboard).\n\nSet the `baseUrl` environment variable (see the bundled `CTMS-local` environment), then run the folders in order: Health -> Commodities -> Trades -> Contracts -> Dashboard. Collection variables `commodityId`, `tradeId`, `contractId` and `tempCommodityId` are captured automatically by the create requests.\n\nNOTE: P&L values returned by this API are simplified estimates for demonstration purposes only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "commodityId", "value": "1", "type": "string" },
+    { "key": "tradeId", "value": "1", "type": "string" },
+    { "key": "contractId", "value": "1", "type": "string" },
+    { "key": "tempCommodityId", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Liveness probe. Expects status UP."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Application is UP\", function () {",
+                  "  pm.expect(pm.response.json().status).to.eql(\"UP\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Commodities",
+      "item": [
+        {
+          "name": "List Commodities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities?q=&active=true&type=ENERGY",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities"],
+              "query": [
+                { "key": "q", "value": "" },
+                { "key": "active", "value": "true" },
+                { "key": "type", "value": "ENERGY" }
+              ]
+            },
+            "description": "List commodities with optional filters q / active / type."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "  pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Commodity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Postman Test Commodity {{$timestamp}}\",\"type\":\"OTHER\",\"unitOfMeasurement\":\"OTHER\",\"description\":\"Created by the Postman collection\",\"active\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities"]
+            },
+            "description": "Create a commodity with a unique name (dynamic timestamp) and capture its id into {{commodityId}}."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set(\"commodityId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Commodity By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities/{{commodityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities", "{{commodityId}}"]
+            },
+            "description": "Fetch the commodity created above."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Commodity",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Postman Test Commodity {{$timestamp}}\",\"type\":\"OTHER\",\"unitOfMeasurement\":\"OTHER\",\"description\":\"Updated by the Postman collection\",\"active\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities/{{commodityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities", "{{commodityId}}"]
+            },
+            "description": "Full update of the commodity."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Patch Commodity Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"active\":false}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities/{{commodityId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities", "{{commodityId}}", "status"]
+            },
+            "description": "Toggle the active flag."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Commodity is inactive\", function () {",
+                  "  pm.expect(pm.response.json().active).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Throwaway Commodity",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Postman Delete Me {{$timestamp}}\",\"type\":\"OTHER\",\"unitOfMeasurement\":\"OTHER\",\"description\":\"Temporary commodity used to test DELETE\",\"active\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities"]
+            },
+            "description": "Creates a throwaway commodity whose id is stored in {{tempCommodityId}} so the DELETE test is repeatable."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set(\"tempCommodityId\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Commodity",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities/{{tempCommodityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities", "{{tempCommodityId}}"]
+            },
+            "description": "Deletes the throwaway commodity. Expects 204 No Content."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Duplicate Commodity Name (409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Crude Oil\",\"type\":\"ENERGY\",\"unitOfMeasurement\":\"BARREL\",\"description\":\"Duplicate of seeded commodity\",\"active\":true}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities"]
+            },
+            "description": "Attempts to create a commodity whose name already exists. Expects 409 Conflict."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () {",
+                  "  pm.response.to.have.status(409);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Commodity Not Found (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities", "999999"]
+            },
+            "description": "Unknown id. Expects 404 Not Found."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Delete Commodity In Use (409)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commodities/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "commodities", "1"]
+            },
+            "description": "Seeded Crude Oil (id 1) has dependent trades/contracts. Expects 409 Conflict."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () {",
+                  "  pm.response.to.have.status(409);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Trades",
+      "item": [
+        {
+          "name": "List Trades (Filters + Paging)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trades?page=0&size=10&sort=tradeDate,desc&commodityId=&tradeType=&status=CONFIRMED&from=2026-01-01&to=2026-12-31&reference=TRD-2026",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "tradeDate,desc" },
+                { "key": "commodityId", "value": "" },
+                { "key": "tradeType", "value": "" },
+                { "key": "status", "value": "CONFIRMED" },
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-12-31" },
+                { "key": "reference", "value": "TRD-2026" }
+              ]
+            },
+            "description": "Paged list of trades with filters. Returns a page envelope."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Has page envelope\", function () {",
+                  "  pm.expect(pm.response.json()).to.have.property(\"content\");",
+                  "  pm.expect(pm.response.json()).to.have.property(\"totalElements\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Trade",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tradeReference\":\"\",\"commodityId\":{{commodityId}},\"tradeType\":\"BUY\",\"quantity\":1000,\"pricePerUnit\":78.5,\"tradeDate\":\"2026-01-15\",\"counterparty\":\"Glencore\",\"contractId\":null,\"status\":\"DRAFT\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades"]
+            },
+            "description": "Creates a trade (blank reference is auto-generated server-side). Captures the id into {{tradeId}}."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set(\"tradeId\", data.id);",
+                  "}",
+                  "pm.test(\"Reference was auto-generated\", function () {",
+                  "  pm.expect(data.tradeReference).to.match(/^TRD-/);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Trade By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trades/{{tradeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades", "{{tradeId}}"]
+            },
+            "description": "Fetch a single trade."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Trade",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tradeReference\":\"\",\"commodityId\":{{commodityId}},\"tradeType\":\"BUY\",\"quantity\":1200,\"pricePerUnit\":79.25,\"tradeDate\":\"2026-01-15\",\"counterparty\":\"Vitol\",\"contractId\":null,\"status\":\"CONFIRMED\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trades/{{tradeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades", "{{tradeId}}"]
+            },
+            "description": "Full update of the trade."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Trade P&L",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trades/{{tradeId}}/pnl",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades", "{{tradeId}}", "pnl"]
+            },
+            "description": "Estimated (FIFO) P&L for the trade's commodity. Always carries a disclaimer."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Uses FIFO cost basis\", function () {",
+                  "  pm.expect(pm.response.json().costBasisMethod).to.eql(\"FIFO\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel Trade",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"CANCELLED\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trades/{{tradeId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades", "{{tradeId}}", "status"]
+            },
+            "description": "Cancels the trade (records are never hard-deleted)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Status is CANCELLED\", function () {",
+                  "  pm.expect(pm.response.json().status).to.eql(\"CANCELLED\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Edit Cancelled Trade (409)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tradeReference\":\"\",\"commodityId\":{{commodityId}},\"tradeType\":\"BUY\",\"quantity\":10,\"pricePerUnit\":1,\"tradeDate\":\"2026-01-15\",\"counterparty\":\"n/a\",\"contractId\":null,\"status\":\"CONFIRMED\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trades/{{tradeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades", "{{tradeId}}"]
+            },
+            "description": "Editing a CANCELLED trade is not allowed. Expects 409 Conflict."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 409\", function () {",
+                  "  pm.response.to.have.status(409);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Quantity Zero (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tradeReference\":\"\",\"commodityId\":{{commodityId}},\"tradeType\":\"BUY\",\"quantity\":0,\"pricePerUnit\":78.5,\"tradeDate\":\"2026-01-15\",\"counterparty\":\"Glencore\",\"contractId\":null,\"status\":\"DRAFT\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trades",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades"]
+            },
+            "description": "quantity must be > 0. Expects 400 Bad Request with fieldErrors."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Has fieldErrors\", function () {",
+                  "  pm.expect(pm.response.json()).to.have.property(\"fieldErrors\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Trade Not Found (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trades/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trades", "999999"]
+            },
+            "description": "Unknown id. Expects 404 Not Found."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Contracts",
+      "item": [
+        {
+          "name": "List Contracts (Filters + Paging)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts?page=0&size=20&status=ACTIVE&commodityId=&reference=CTR-2026&from=2026-01-01&to=2026-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" },
+                { "key": "status", "value": "ACTIVE" },
+                { "key": "commodityId", "value": "" },
+                { "key": "reference", "value": "CTR-2026" },
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-12-31" }
+              ]
+            },
+            "description": "Paged list of contracts. Returns a page envelope."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Has page envelope\", function () {",
+                  "  pm.expect(pm.response.json()).to.have.property(\"content\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Contract",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contractReference\":\"\",\"buyerName\":\"Vitol\",\"sellerName\":\"Trafigura\",\"commodityId\":{{commodityId}},\"contractQuantity\":5000,\"contractPrice\":76.25,\"contractDate\":\"2026-01-10\",\"deliveryDate\":\"2026-02-10\",\"deliveryLocation\":\"Rotterdam\",\"status\":\"DRAFT\",\"linkedTradeId\":null}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"]
+            },
+            "description": "Creates a contract (blank reference is auto-generated). Captures the id into {{contractId}}."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set(\"contractId\", data.id);",
+                  "}",
+                  "pm.test(\"Reference was auto-generated\", function () {",
+                  "  pm.expect(data.contractReference).to.match(/^CTR-/);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Contract By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/{{contractId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "{{contractId}}"]
+            },
+            "description": "Fetch a single contract."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Contract",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contractReference\":\"\",\"buyerName\":\"Vitol\",\"sellerName\":\"Trafigura\",\"commodityId\":{{commodityId}},\"contractQuantity\":5000,\"contractPrice\":77.5,\"contractDate\":\"2026-01-10\",\"deliveryDate\":\"2026-02-15\",\"deliveryLocation\":\"Rotterdam\",\"status\":\"ACTIVE\",\"linkedTradeId\":null}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/{{contractId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "{{contractId}}"]
+            },
+            "description": "Full update of the contract."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upcoming Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/upcoming-deliveries?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "upcoming-deliveries"],
+              "query": [{ "key": "days", "value": "30" }]
+            },
+            "description": "Contracts with a delivery date inside the next N days (default 30)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "  pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Delivery Date Before Contract Date (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"contractReference\":\"\",\"buyerName\":\"Vitol\",\"sellerName\":\"Trafigura\",\"commodityId\":{{commodityId}},\"contractQuantity\":100,\"contractPrice\":50,\"contractDate\":\"2026-05-01\",\"deliveryDate\":\"2026-04-01\",\"deliveryLocation\":\"Rotterdam\",\"status\":\"DRAFT\",\"linkedTradeId\":null}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"]
+            },
+            "description": "deliveryDate must not be earlier than contractDate. Expects 400 Bad Request."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "NEGATIVE - Contract Not Found (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "999999"]
+            },
+            "description": "Unknown id. Expects 404 Not Found."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "  pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "summary"]
+            },
+            "description": "High-level KPIs across commodities, trades, contracts and estimated P&L."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Has P&L disclaimer\", function () {",
+                  "  pm.expect(pm.response.json()).to.have.property(\"pnlDisclaimer\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard Trade Volume",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/trade-volume",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "trade-volume"]
+            },
+            "description": "Aggregated buy/sell volume and value per commodity."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard Trade Activity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/trade-activity?months=6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "trade-activity"],
+              "query": [{ "key": "months", "value": "6" }]
+            },
+            "description": "Monthly trade activity time-series (for charts)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard P&L",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard/pnl",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard", "pnl"]
+            },
+            "description": "Per-commodity FIFO P&L plus a total. Estimated values only."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Declares FIFO cost basis\", function () {",
+                  "  pm.expect(pm.response.json().costBasisMethod).to.eql(\"FIFO\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

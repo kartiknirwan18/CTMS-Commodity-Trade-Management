@@ -1,0 +1,225 @@
+// MultiStore - Prisma schema
+//
+// Default provider is SQLite so the project runs locally with zero setup.
+// To switch to PostgreSQL: change `provider` below to "postgresql" and set
+// DATABASE_URL, e.g. postgresql://user:pass@localhost:5432/multistore?schema=public
+// then run `npx prisma migrate dev --name switch_to_postgres`.
+//
+// PORTABILITY NOTES
+// - Prisma enums are not supported by the SQLite connector, therefore every
+//   "enum" column is a String constrained by the validators in
+//   `src/utils/constants.js` and by the Zod schemas in `src/validators/`.
+//   Switching to PostgreSQL only requires changing `provider`.
+// - Prisma's `Json` scalar is not supported by SQLite either, so structured
+//   free-form values (opening hours, review image lists) are stored as
+//   JSON-encoded strings. They stay portable as-is.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+/// roles: SUPER_ADMIN | STORE_OWNER | CUSTOMER
+/// status: ACTIVE | SUSPENDED
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("CUSTOMER")
+  status       String    @default("ACTIVE")
+  avatarUrl    String?
+  bio          String?
+  city         String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  stores       Store[]             @relation("StoreOwner")
+  reviews      Review[]
+  replies      ReviewReply[]
+  reports      ReviewReport[]
+  helpfulVotes ReviewHelpfulVote[]
+
+  @@index([role])
+  @@index([status])
+}
+
+model StoreCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?  @default("store")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stores Store[]
+}
+
+/// status: PENDING | APPROVED | REJECTED | SUSPENDED
+model Store {
+  id          String      @id @default(cuid())
+  ownerId     String
+  categoryId  String?
+  name        String
+  slug        String      @unique
+  tagline     String?
+  description String
+  logoUrl     String?
+  bannerUrl   String?
+  phone       String?
+  email       String?
+  website     String?
+  addressLine String
+  city        String
+  state       String?
+  country     String      @default("India")
+  postalCode  String?
+  /// JSON array: [{ day, open, close, closed }]
+  openingHours String?
+  status       String      @default("PENDING")
+  isPublished  Boolean     @default(true)
+  isFeatured   Boolean     @default(false)
+  adminNote    String?
+  approvedAt   DateTime?
+  avgRating    Float       @default(0)
+  reviewCount  Int         @default(0)
+  ratingSum    Int         @default(0)
+  rating1Count Int         @default(0)
+  rating2Count Int         @default(0)
+  rating3Count Int         @default(0)
+  rating4Count Int         @default(0)
+  rating5Count Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  owner    User          @relation("StoreOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  category StoreCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  theme    StoreTheme?
+  images   StoreImage[]
+  reviews  Review[]
+
+  @@index([ownerId])
+  @@index([categoryId])
+  @@index([status, isPublished])
+  @@index([city])
+  @@index([avgRating])
+}
+
+/// layout: GRID | LIST | MAGAZINE
+/// reviewDisplay: CARDS | COMPACT
+model StoreTheme {
+  id              String   @id @default(cuid())
+  storeId         String   @unique
+  primaryColor    String   @default("#0ea5e9")
+  accentColor     String   @default("#22d3ee")
+  backgroundColor String   @default("#f8fafc")
+  surfaceColor    String   @default("#ffffff")
+  textColor       String   @default("#0f172a")
+  fontFamily      String   @default("Inter")
+  layout          String   @default("GRID")
+  reviewDisplay   String   @default("CARDS")
+  roundedCorners  Boolean  @default(true)
+  showBanner      Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+model StoreImage {
+  id        String   @id @default(cuid())
+  storeId   String
+  url       String
+  caption   String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+}
+
+/// status: PUBLISHED | HIDDEN | REMOVED
+model Review {
+  id              String   @id @default(cuid())
+  storeId         String
+  userId          String
+  rating          Int
+  title           String?
+  comment         String
+  /// JSON array of image URLs
+  images          String?
+  status          String   @default("PUBLISHED")
+  isVerifiedVisit Boolean  @default(false)
+  helpfulCount    Int      @default(0)
+  moderationNote  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  store   Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reply   ReviewReply?
+  reports ReviewReport[]
+  votes   ReviewHelpfulVote[]
+
+  @@unique([storeId, userId])
+  @@index([storeId, status])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([rating])
+}
+
+model ReviewReply {
+  id        String   @id @default(cuid())
+  reviewId  String   @unique
+  ownerId   String
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  owner  User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+/// status: OPEN | RESOLVED | DISMISSED
+model ReviewReport {
+  id         String   @id @default(cuid())
+  reviewId   String
+  reporterId String
+  reason     String
+  details    String?
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  review   Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reporter User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, reporterId])
+  @@index([status])
+}
+
+model ReviewHelpfulVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([userId])
+}

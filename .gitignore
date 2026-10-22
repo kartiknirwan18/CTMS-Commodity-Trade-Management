@@ -1,0 +1,22 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+npm-debug.log*
+
+# database
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/prisma/migrations/dev.db*
+
+# uploaded files (keep the folder, ignore user content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# editor / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

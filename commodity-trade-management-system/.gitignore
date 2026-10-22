@@ -1,0 +1,90 @@
+# ============================================================================
+#  CTMS - Commodity Trade Management System
+#  Root .gitignore  (Java / Maven, Node / Vite, IDE, env, logs, build output)
+# ============================================================================
+
+# ------------------------------- Environment -------------------------------
+# Real secrets must never be committed. Keep the *.example templates.
+.env
+.env.*
+!.env.example
+*.local
+
+# ---------------------------------- Java -----------------------------------
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# -------------------------------- Maven ------------------------------------
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# NOTE: the Maven wrapper launchers are intentionally NOT ignored:
+#   mvnw, mvnw.cmd, .mvn/wrapper/maven-wrapper.properties
+
+# ---------------------------------- Node -----------------------------------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+
+# ---------------------------------- IDE ------------------------------------
+# IntelliJ / JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated/
+# VS Code
+.vscode/
+!.vscode/extensions.json
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# ---------------------------------- Logs -----------------------------------
+logs/
+*.log
+
+# ------------------------------- Build output ------------------------------
+build/
+coverage/
+*.tgz
+
+# ------------------------- Local databases / dumps -------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.dump
